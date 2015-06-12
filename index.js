@@ -17,6 +17,7 @@ var DigitalOcean = PromiseObject.create({
 	initialize: function ($config) {
 		this._token = $config.token;
 		this._itemsPerPage = $config.itemsPerPage || 100;
+		this._maxRetries = $config.maxRetries || 5;
 	},
 
 	API_URL: 'https://api.digitalocean.com/v2',
@@ -65,7 +66,7 @@ var DigitalOcean = PromiseObject.create({
 		    delay: function (attempt) {
 		        return attempt * 1000;
 		    },
-		    maxRetries: 25,
+		    maxRetries: $self.maxRetries,
 		    onAttempt: function (attempt) {
 		    	if (attempt === 1) {
 		    		debug(('[doapi] ' + $config.method + ' "' + getURL + '"')[attempt > 1 ? 'red' : 'grey']);

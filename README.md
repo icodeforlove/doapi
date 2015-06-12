@@ -31,7 +31,8 @@ api.dropletGetAll().then(function (droplets) {
 ```js
 new DigitalOceanAPI({
 	token: 'my_token',
-	itemsPerPage: 100
+	itemsPerPage: 100, // default 100
+	maxRetries: 5 // default 5
 });
 ```
 
