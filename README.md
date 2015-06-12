@@ -1,6 +1,6 @@
 # doapi
 
-The doapi module allows you to communicate with the [DigitalOcean API](https://developers.digitalocean.com/documentation/v2/) from node.js in a promise friendly manner.
+The doapi module allows you to communicate with the [DigitalOcean API V2](https://developers.digitalocean.com/documentation/v2/) from node.js in a promise friendly manner.
 
 ## Installation
 
@@ -18,7 +18,7 @@ The `--save` tells NPM to automatically add it to your `package.json` file
 // Import a module
 var DigitalOceanAPI = require('doapi');
 
-// Create an instance with your API credentials
+// Create an instance with your API V2 credentials
 var api = new DigitalOceanAPI({token: 'my_token'});
 
 // Get things done
