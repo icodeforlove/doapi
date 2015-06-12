@@ -35,6 +35,15 @@ new DigitalOceanAPI({
 });
 ```
 
+## Pagination
+you can pass a pagination params into any method that has a body or query param.
+
+```js
+api.dropletGetAll({per_page: 1, page: 2}).then(function (droplets) {
+	console.log(droplets);
+});
+```
+
 ## Methods
 
 All methods follow the [official API documentation](https://developers.digitalocean.com/documentation/v2/).
