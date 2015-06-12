@@ -1015,8 +1015,4 @@ var DigitalOcean = PromiseObject.create({
 	}
 });
 
-// for (var i in DigitalOcean.prototype) {
-// 	console.log(i + DigitalOcean.prototype[i].toString().split('\n')[0].replace(/\$deferred, |function| {/g, '').replace(/ \(/, '(').replace(/\((.+)\)/, '([$1])'));
-// }
-
 module.exports = DigitalOcean;
