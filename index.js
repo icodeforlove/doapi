@@ -80,7 +80,6 @@ var DigitalOcean = PromiseObject.create({
 			        	{
 			        		method: $config.method,
 							url: getURL,
-							strictSSL: false,
 							json: true,
 							headers: {
 								Authorization: "Bearer " + $self._token
