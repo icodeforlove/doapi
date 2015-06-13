@@ -66,6 +66,13 @@ All methods follow the [official API documentation](https://developers.digitaloc
 - [dropletRebuild([id, body])](https://developers.digitalocean.com/documentation/v2/#rebuild-a-droplet)
 - [dropletRename([id, body])](https://developers.digitalocean.com/documentation/v2/#rename-a-droplet)
 - [dropletDestroy([id])](https://developers.digitalocean.com/documentation/v2/#delete-a-droplet)
+- [dropletKernalsGetAll([id, query])](https://developers.digitalocean.com/documentation/v2/#list-all-available-kernels-for-a-droplet)
+- [dropletSnapshotsGetAll([id, query])](https://developers.digitalocean.com/documentation/v2/#list-snapshots-for-a-droplet)
+- [dropletBackupsGetAll([id, query])](https://developers.digitalocean.com/documentation/v2/#list-backups-for-a-droplet)
+- [dropletActionGetAll([id, query])](https://developers.digitalocean.com/documentation/v2/#list-actions-for-a-droplet)
+- [dropletNeighborsGetAll([id, query])](https://developers.digitalocean.com/documentation/v2/#list-neighbors-for-a-droplet)
+- [dropletUpgradesGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-droplet-upgrades)
+- [reportDropletNeighborsGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-all-droplet-neighbors)
 
 
 ### Regions

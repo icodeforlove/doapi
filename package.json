@@ -1,6 +1,6 @@
 {
   "name": "doapi",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Chad Scira <_@chad.so> (chad.so)",
   "description": "DigitalOcean V2 API wrapper",
   "contributors": [

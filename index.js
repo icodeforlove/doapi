@@ -169,6 +169,128 @@ var DigitalOcean = PromiseObject.create({
 	},
 
 	/**
+	 * List all available Kernels for a Droplet
+	 */
+	dropletKernalsGetAll: function($deferred, id, query) {
+		$deferred.resolve(this._request({
+			params: {
+				droplet_id: Joi.number().required()
+			}
+		}, {
+			method: 'GET',
+			path: 'droplets/:droplet_id/kernels',
+			required: 'kernels',
+			params: {
+				droplet_id: id
+			},
+			query: query || {}
+		}));
+	},
+
+	/**
+	 * List snapshots for a Droplet
+	 */
+	dropletSnapshotsGetAll: function($deferred, id, query) {
+		$deferred.resolve(this._request({
+			params: {
+				droplet_id: Joi.number().required()
+			}
+		}, {
+			method: 'GET',
+			path: 'droplets/:droplet_id/snapshots',
+			required: 'snapshots',
+			params: {
+				droplet_id: id
+			},
+			query: query || {}
+		}));
+	},
+
+	/**
+	 * List backups for a Droplet
+	 */
+	dropletBackupsGetAll: function($deferred, id, query) {
+		$deferred.resolve(this._request({
+			params: {
+				droplet_id: Joi.number().required()
+			}
+		}, {
+			method: 'GET',
+			path: 'droplets/:droplet_id/backups',
+			required: 'backups',
+			params: {
+				droplet_id: id
+			},
+			query: query || {}
+		}));
+	},
+
+	/**
+	 * List actions for a Droplet
+	 */
+	dropletActionGetAll: function($deferred, id, query) {
+		$deferred.resolve(this._request({
+			params: {
+				droplet_id: Joi.number().required()
+			}
+		}, {
+			method: 'GET',
+			path: 'droplets/:droplet_id/actions',
+			required: 'actions',
+			params: {
+				droplet_id: id
+			},
+			query: query || {}
+		}));
+	},
+
+	/**
+	 * List Neighbors for a Droplet
+	 */
+	dropletNeighborsGetAll: function($deferred, id, query) {
+		$deferred.resolve(this._request({
+			params: {
+				droplet_id: Joi.number().required()
+			}
+		}, {
+			method: 'GET',
+			path: 'droplets/:droplet_id/neighbors',
+			required: 'droplets',
+			params: {
+				droplet_id: id
+			},
+			query: query || {}
+		}));
+	},
+
+	/**
+	 * List all Droplet Neighbors
+	 */
+	reportDropletNeighborsGetAll: function($deferred, query) {
+		$deferred.resolve(this._request(null, {
+			method: 'GET',
+			path: 'reports/droplet_neighbors',
+			required: 'neighbors',
+			query: query || {}
+		}));
+	},
+
+	/**
+	 * List Droplet Upgrades
+	 * 
+	 * list of droplets that are scheduled to be upgraded
+	 */
+
+	dropletUpgradesGetAll: function($deferred, query) {
+		$deferred.resolve(this._request(null, {
+			method: 'GET',
+			path: 'droplet_upgrades',
+			query: query || {}
+		}));
+	},
+
+
+	/**
 	 * Show Droplet
 	 * 
 	 * This method returns full information for a specific droplet ID that is passed in the URL.
