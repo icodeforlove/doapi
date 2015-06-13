@@ -94,7 +94,11 @@ we use the debug module so you can debug the http requests by doing the followin
 DEBUG=http node myfile.js
 ```
 
-also all methods use property/argument type checking
+![image](http://cdn.img42.com/4ad5f305b6fe80613c90aadf54337598.png)
+
+also all methods enforce type checking so invalid usage would result in errors like this
+
+![image](http://cdn.img42.com/f907facdbd064128b0fcff1e482fced5.png)
 
 ## Methods
 
