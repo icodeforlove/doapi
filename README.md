@@ -2,6 +2,8 @@
 
 The doapi module allows you to communicate with the [DigitalOcean API V2](https://developers.digitalocean.com/documentation/v2/) from node.js in a promise friendly manner.
 
+It also supports automatic request retries.
+
 ## Installation
 
 This module is published in NPM:
@@ -31,8 +33,9 @@ api.dropletGetAll().then(function (droplets) {
 ```js
 new DigitalOceanAPI({
 	token: 'my_token',
-	itemsPerPage: 100, // default 100
-	maxRetries: 5 // default 5
+	itemsPerPage: 100, // default=100
+	maxRetries: 5, // default=5
+	raw: false // default=false
 });
 ```
 
@@ -45,6 +48,45 @@ api.dropletGetAll({per_page: 1, page: 2}).then(function (droplets) {
 });
 ```
 
+## Raw
+you can pass raw into any method and it will return the full response body with request info + ratelimiting details, the default is false.
+
+```js
+api.accountGet(true);
+```
+
+would return
+```json
+	{
+		account: {
+			droplet_limit: 25,
+			email: 'email@domain.com',
+			uuid: 'f5bbaffce3a8792421593a7075b486bafd66672f',
+			email_verified: true
+		},
+		ratelimit: {
+			limit: '5000',
+			remaining: '4993',
+			reset: '1434197547'
+		},
+		requestinfo: {
+			id: 'a24427fd-0d43-9536-a206-zac22d2696e1',
+			runtime: '0.038537'
+		 }
+	}
+```
+
+and with raw set to false (the default) it would return
+
+```
+	{
+		droplet_limit: 25,
+		email: 'email@domain.com',
+		uuid: 'f5bbaffce3a8792421593a7075b486bafd66672f',
+		email_verified: true
+	}
+```
+
 ## Debugging
 we use the debug module so you can debug the http requests by doing the following
 
@@ -52,76 +94,81 @@ we use the debug module so you can debug the http requests by doing the followin
 DEBUG=http node myfile.js
 ```
 
+also all methods use property/argument type checking
+
 ## Methods
 
 All methods follow the [official API documentation](https://developers.digitalocean.com/documentation/v2/).
 
 ### Droplets
 
-- [dropletGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-all-droplets)
-- [dropletNew([body])](https://developers.digitalocean.com/documentation/v2/#create-a-new-droplet)
-- [dropletGet([id])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-droplet-by-id)
-- [dropletReboot([id])](https://developers.digitalocean.com/documentation/v2/#reboot-a-droplet)
-- [dropletPowerCycle([id])](https://developers.digitalocean.com/documentation/v2/#power-cycle-a-droplet)
-- [dropletShutdown([id])](https://developers.digitalocean.com/documentation/v2/#shutdown-a-droplet)
-- [dropletPowerOff([id])](https://developers.digitalocean.com/documentation/v2/#power-off-a-droplet)
-- [dropletPowerOn([id])](https://developers.digitalocean.com/documentation/v2/#power-on-a-droplet)
-- [dropletPasswordReset([id])](https://developers.digitalocean.com/documentation/v2/#password-reset-a-droplet)
-- [dropletResize([id, body])](https://developers.digitalocean.com/documentation/v2/#resize-a-droplet)
-- [dropletSnapshot([id, body])](https://developers.digitalocean.com/documentation/v2/#snapshot-a-droplet)
-- [dropletRestore([id, body])](https://developers.digitalocean.com/documentation/v2/#restore-a-droplet)
-- [dropletRebuild([id, body])](https://developers.digitalocean.com/documentation/v2/#rebuild-a-droplet)
-- [dropletRename([id, body])](https://developers.digitalocean.com/documentation/v2/#rename-a-droplet)
-- [dropletDestroy([id])](https://developers.digitalocean.com/documentation/v2/#delete-a-droplet)
-- [dropletKernalsGetAll([id, query])](https://developers.digitalocean.com/documentation/v2/#list-all-available-kernels-for-a-droplet)
-- [dropletSnapshotsGetAll([id, query])](https://developers.digitalocean.com/documentation/v2/#list-snapshots-for-a-droplet)
-- [dropletBackupsGetAll([id, query])](https://developers.digitalocean.com/documentation/v2/#list-backups-for-a-droplet)
-- [dropletActionGetAll([id, query])](https://developers.digitalocean.com/documentation/v2/#list-actions-for-a-droplet)
-- [dropletNeighborsGetAll([id, query])](https://developers.digitalocean.com/documentation/v2/#list-neighbors-for-a-droplet)
-- [dropletUpgradesGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-droplet-upgrades)
-- [reportDropletNeighborsGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-all-droplet-neighbors)
+- [dropletGetAll(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-droplets)
+- [dropletNew(Object body, [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#create-a-new-droplet)
+- [dropletGet(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-droplet-by-id)
+- [dropletReboot(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#reboot-a-droplet)
+- [dropletPowerCycle(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#power-cycle-a-droplet)
+- [dropletShutdown(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#shutdown-a-droplet)
+- [dropletPowerOff(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#power-off-a-droplet)
+- [dropletPowerOn(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#power-on-a-droplet)
+- [dropletPasswordReset(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#password-reset-a-droplet)
+- [dropletResize(Number id, Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#resize-a-droplet)
+- [dropletSnapshot(Number id, Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#snapshot-a-droplet)
+- [dropletRestore(Number id, Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#restore-a-droplet)
+- [dropletRebuild(Number id, Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#rebuild-a-droplet)
+- [dropletRename(Number id, Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#rename-a-droplet)
+- [dropletDestroy(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#delete-a-droplet)
+- [dropletKernalsGetAll(Number id, Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-available-kernels-for-a-droplet)
+- [dropletSnapshotsGetAll(Number id, Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-snapshots-for-a-droplet)
+- [dropletBackupsGetAll(Number id, Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-backups-for-a-droplet)
+- [dropletActionGetAll(Number id, Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-actions-for-a-droplet)
+- [dropletNeighborsGetAll(Number id, Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-neighbors-for-a-droplet)
+- [dropletUpgradesGetAll(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-droplet-upgrades)
+- [reportDropletNeighborsGetAll(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-droplet-neighbors)
 
+## Account
+
+- [accountGet([Boolean raw])](https://developers.digitalocean.com/documentation/v2/#get-user-information)
 
 ### Regions
 
-- [regionGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-all-regions)
+- [regionGetAll(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-regions)
 
 ### Images
 
-- [imageGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-all-images)
-- [imageDistributionGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-all-distribution-images)
-- [imageApplicationGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-all-application-images)
-- [imageGetMine([query])](https://developers.digitalocean.com/documentation/v2/#list-a-user-s-images)
-- [imageGet([id])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-image-by-id)
-- [imageDestroy([id])](https://developers.digitalocean.com/documentation/v2/#delete-an-image)
-- [imageTransfer([id, body])](https://developers.digitalocean.com/documentation/v2/#transfer-an-image)
-- [imageToSnapshot([id])](https://developers.digitalocean.com/documentation/v2/#convert-an-image-to-a-snapshot)
+- [imageGetAll(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-images)
+- [imageDistributionGetAll(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-distribution-images)
+- [imageApplicationGetAll(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-application-images)
+- [imageGetMine(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-a-user-s-images)
+- [imageGet(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-image-by-id)
+- [imageDestroy(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#delete-an-image)
+- [imageTransfer(Number id, Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#transfer-an-image)
+- [imageToSnapshot(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#convert-an-image-to-a-snapshot)
 
 ### SSH keys
 
-- [sshKeyGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-all-keys)
-- [sshKeyAdd([body])](https://developers.digitalocean.com/documentation/v2/#create-a-new-key)
-- [sshKeyGet([id])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-key)
-- [sshKeyUpdate([id, body])](https://developers.digitalocean.com/documentation/v2/#update-a-key)
-- [sshKeyDestroy([id])](https://developers.digitalocean.com/documentation/v2/#destroy-a-key)
+- [sshKeyGetAll(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-keys)
+- [sshKeyAdd(Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#create-a-new-key)
+- [sshKeyGet(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-key)
+- [sshKeyUpdate(Number id, Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#update-a-key)
+- [sshKeyDestroy(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#destroy-a-key)
 
 ### Sizes
 
-- [sizeGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-all-sizes)
+- [sizeGetAll(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-sizes)
 
 ### Domains
 
-- [domainGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-all-domains)
-- [domainNew([name, body])](https://developers.digitalocean.com/documentation/v2/#create-a-new-domain)
-- [domainGet([name])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-domain)
-- [domainDestroy([name])](https://developers.digitalocean.com/documentation/v2/#delete-a-domain)
-- [domainRecordGetAll([name, query])](https://developers.digitalocean.com/documentation/v2/#list-all-domain-records)
-- [domainRecordGet([name, id])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-domain-record)
-- [domainRecordEdit([name, id, body])](https://developers.digitalocean.com/documentation/v2/#update-a-domain-record)
-- [domainRecordDestroy([name, id])](https://developers.digitalocean.com/documentation/v2/#delete-a-domain-record)
+- [domainGetAll(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-domains)
+- [domainNew(String name, Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#create-a-new-domain)
+- [domainGet(String name [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-domain)
+- [domainDestroy(String name [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#delete-a-domain)
+- [domainRecordGetAll(String name, Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-domain-records)
+- [domainRecordGet(String name, Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-domain-record)
+- [domainRecordEdit(String name, Number id, Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#update-a-domain-record)
+- [domainRecordDestroy(String name, Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#delete-a-domain-record)
 
 
 ### Actions
 
-- [actionsGetAll([query])](https://developers.digitalocean.com/documentation/v2/#list-all-actions)
-- [actionsGet([id])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-action)
+- [actionsGetAll(String name [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-actions)
+- [actionsGet(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-action)

@@ -18,28 +18,34 @@ var DigitalOcean = PromiseObject.create({
 		this._token = $config.token;
 		this._itemsPerPage = $config.itemsPerPage || 100;
 		this._maxRetries = $config.maxRetries || 5;
+		this._raw = $config.raw || false;
 	},
 
 	API_URL: 'https://api.digitalocean.com/v2',
 
-	_request: function ($deferred, schema, payload) {
-		var hasQuery = !!(payload && payload.query);
+	_request: function ($deferred, schema, payload, raw) {
+		var hasQuery = !!(payload && payload.query),
+			hasBody = !!(payload && payload.body);
 
 		schema = schema || {};
 		payload = payload || {};
+
+		payload.raw = raw;
 
 		if (hasQuery) {
 			payload.query = extend({
 				page: 1,
 				per_page: this._itemsPerPage
 			}, payload.query);
+		}
 
-			if (payload.body && payload.body.per_page) {
+		if (hasBody) {
+			if (hasQuery && payload.body.per_page) {
 				payload.query.per_page = payload.body.per_page;
 				delete payload.body.per_page;
 			}
 
-			if (payload.body && payload.body.page) {
+			if (hasQuery && payload.body.page) {
 				payload.query.page = payload.body.page;
 				delete payload.body.page;
 			}
@@ -52,6 +58,7 @@ var DigitalOcean = PromiseObject.create({
 			per_page: Joi.number(),
 			page: Joi.number()
 		}, schema.query);
+		schema.raw = Joi.boolean();
 
 		$deferred.resolve(this._validateAndMakeRequest(schema, payload));
 	},
@@ -94,7 +101,20 @@ var DigitalOcean = PromiseObject.create({
 							if (error || ($config.required && !body[$config.required])) {
 								return reject(new Error('Request Failed'));
 							} else {
-								if ($config.required) {
+								if ($config.raw || $self._raw && $config.raw !== false) {
+  									body.ratelimit = {
+  										limit: response.headers['ratelimit-limit'],
+  										remaining: response.headers['ratelimit-remaining'],
+  										reset: response.headers['ratelimit-reset']
+  									};
+
+  									body.requestinfo = {
+  										id: response.headers['x-request-id'],
+  										runtime: response.headers['x-runtime'],
+  									};
+
+									resolve(body || {});
+								} else if ($config.required) {
 									resolve(body[$config.required] || {});
 								} else {
 									resolve(body || {});
@@ -128,17 +148,29 @@ var DigitalOcean = PromiseObject.create({
 	},
 
 	/**
+	 * Get User Information
+	 */
+	accountGet: function ($deferred, raw) {
+		$deferred.resolve(this._request(null, {
+			method: 'GET',
+			path: 'account',
+			required: 'account'
+		}, raw));
+	},
+
+
+	/**
 	 * Show All Active Droplets
 	 * 
 	 * This method returns all active droplets that are currently running in your account. All available API information is presented for each droplet.
 	 */
-	dropletGetAll: function ($deferred, query) {
+	dropletGetAll: function ($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
 			method: 'GET',
 			path: 'droplets',
 			required: 'droplets',
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 
@@ -147,7 +179,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to create a new droplet. See the required parameters section below for an explanation of the variables that are needed to create a new droplet.
 	 */
-	dropletNew: function($deferred, body) {
+	dropletNew: function($deferred, body, raw) {
 		$deferred.resolve(this._request({
 			body: {
 				name: Joi.string().required(),
@@ -165,13 +197,13 @@ var DigitalOcean = PromiseObject.create({
 			path: 'droplets',
 			required: 'droplet',
 			body: body || {}
-		}));
+		}, raw));
 	},
 
 	/**
 	 * List all available Kernels for a Droplet
 	 */
-	dropletKernalsGetAll: function($deferred, id, query) {
+	dropletKernalsGetAll: function($deferred, id, query, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -184,13 +216,13 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: id
 			},
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
 	 * List snapshots for a Droplet
 	 */
-	dropletSnapshotsGetAll: function($deferred, id, query) {
+	dropletSnapshotsGetAll: function($deferred, id, query, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -203,13 +235,13 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: id
 			},
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
 	 * List backups for a Droplet
 	 */
-	dropletBackupsGetAll: function($deferred, id, query) {
+	dropletBackupsGetAll: function($deferred, id, query, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -222,13 +254,13 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: id
 			},
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
 	 * List actions for a Droplet
 	 */
-	dropletActionGetAll: function($deferred, id, query) {
+	dropletActionGetAll: function($deferred, id, query, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -241,13 +273,13 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: id
 			},
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
 	 * List Neighbors for a Droplet
 	 */
-	dropletNeighborsGetAll: function($deferred, id, query) {
+	dropletNeighborsGetAll: function($deferred, id, query, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -260,19 +292,19 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: id
 			},
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
 	 * List all Droplet Neighbors
 	 */
-	reportDropletNeighborsGetAll: function($deferred, query) {
+	reportDropletNeighborsGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
 			method: 'GET',
 			path: 'reports/droplet_neighbors',
 			required: 'neighbors',
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -281,12 +313,12 @@ var DigitalOcean = PromiseObject.create({
 	 * list of droplets that are scheduled to be upgraded
 	 */
 
-	dropletUpgradesGetAll: function($deferred, query) {
+	dropletUpgradesGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
 			method: 'GET',
 			path: 'droplet_upgrades',
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 
@@ -295,7 +327,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method returns full information for a specific droplet ID that is passed in the URL.
 	 */
-	dropletGet: function($deferred, id) {
+	dropletGet: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -307,7 +339,7 @@ var DigitalOcean = PromiseObject.create({
 			params: {
 				droplet_id: id
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -315,7 +347,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to reboot a droplet. This is the preferred method to use if a server is not responding.
 	 */
-	dropletReboot: function($deferred, id) {
+	dropletReboot: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -333,7 +365,7 @@ var DigitalOcean = PromiseObject.create({
 			body: {
 				type: 'reboot'
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -341,7 +373,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to power cycle a droplet. This will turn off the droplet and then turn it back on.
 	 */
-	dropletPowerCycle: function($deferred, id) {
+	dropletPowerCycle: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -359,7 +391,7 @@ var DigitalOcean = PromiseObject.create({
 			body: {
 				type: 'power_cycle'
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -367,7 +399,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to shutdown a running droplet. The droplet will remain in your account.
 	 */
-	dropletShutdown: function($deferred, id) {
+	dropletShutdown: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -385,7 +417,7 @@ var DigitalOcean = PromiseObject.create({
 			body: {
 				type: 'shutdown'
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -393,7 +425,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to poweroff a running droplet. The droplet will remain in your account.
 	 */
-	dropletPowerOff: function($deferred, id) {
+	dropletPowerOff: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -411,7 +443,7 @@ var DigitalOcean = PromiseObject.create({
 			body: {
 				type: 'power_off'
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -419,7 +451,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to poweron a powered off droplet.
 	 */
-	dropletPowerOn: function($deferred, id) {
+	dropletPowerOn: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -437,7 +469,7 @@ var DigitalOcean = PromiseObject.create({
 			body: {
 				type: 'power_on'
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -445,7 +477,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method will reset the root password for a droplet. Please be aware that this will reboot the droplet to allow resetting the password.
 	 */
-	dropletPasswordReset: function($deferred, id) {
+	dropletPasswordReset: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -463,7 +495,7 @@ var DigitalOcean = PromiseObject.create({
 			body: {
 				type: 'password_reset'
 			}
-		}));
+		}, raw));
 	},
 
 
@@ -472,7 +504,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to resize a specific droplet to a different size. This will affect the number of processors and memory allocated to the droplet.
 	 */
-	dropletResize: function($deferred, id, body) {
+	dropletResize: function($deferred, id, body, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -492,7 +524,7 @@ var DigitalOcean = PromiseObject.create({
 			body: extend({
 				type: 'resize'
 			}, body)
-		}));
+		}, raw));
 	},
 
 	/**
@@ -500,7 +532,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to take a snapshot of the running droplet, which can later be restored or used to create a new droplet from the same image. Please be aware this may cause a reboot.
 	 */
-	dropletSnapshot: function($deferred, id, body) {
+	dropletSnapshot: function($deferred, id, body, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -519,7 +551,7 @@ var DigitalOcean = PromiseObject.create({
 			body: extend({
 				type: 'snapshot'
 			}, body)
-		}));
+		}, raw));
 	},
 
 	/**
@@ -527,7 +559,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to restore a droplet with a previous image or snapshot. This will be a mirror copy of the image or snapshot to your droplet. Be sure you have backed up any necessary information prior to restore.
 	 */
-	dropletRestore: function($deferred, id, body) {
+	dropletRestore: function($deferred, id, body, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -546,7 +578,7 @@ var DigitalOcean = PromiseObject.create({
 			body: extend({
 				type: 'restore'
 			}, body)
-		}));
+		}, raw));
 	},
 
 
@@ -555,7 +587,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to reinstall a droplet with a default image. This is useful if you want to start again but retain the same IP address for your droplet.
 	 */
-	dropletRebuild: function($deferred, id, body) {
+	dropletRebuild: function($deferred, id, body, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -574,7 +606,7 @@ var DigitalOcean = PromiseObject.create({
 			body: extend({
 				type: 'rebuild'
 			}, body)
-		}));
+		}, raw));
 	},
 
 	/**
@@ -582,7 +614,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method renames the droplet to the specified name.
 	 */
-	dropletRename: function($deferred, id, body) {
+	dropletRename: function($deferred, id, body, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -601,7 +633,7 @@ var DigitalOcean = PromiseObject.create({
 			body: extend({
 				type: 'rename'
 			}, body)
-		}));
+		}, raw));
 	},
 	
 	/**
@@ -609,7 +641,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method destroys one of your droplets - this is irreversible.
 	 */
-	dropletDestroy: function($deferred, id) {
+	dropletDestroy: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
@@ -620,7 +652,7 @@ var DigitalOcean = PromiseObject.create({
 			params: {
 				droplet_id: id
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -628,13 +660,13 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method will return all the available regions within the Digital Ocean cloud.
 	 */
-	regionGetAll: function($deferred, query) {
+	regionGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
 			method: 'GET',
 			path: 'regions',
 			required: 'regions',
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 
@@ -643,19 +675,19 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method returns all the available images that can be accessed by your client ID. You will have access to all public images by default, and any snapshots or backups that you have created in your own account.
 	 */
-	imageGetAll: function($deferred, query) {
+	imageGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
 			method: 'GET',
 			path: 'images',
 			required: 'images',
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
 	 * List all Distribution Images
 	 */
-	imageDistributionGetAll: function($deferred, query) {
+	imageDistributionGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request({
 			query: {
 				type: Joi.string().required()
@@ -667,14 +699,14 @@ var DigitalOcean = PromiseObject.create({
 			query: extend({
 				type: 'distribution'
 			}, query)
-		}));
+		}, raw));
 	},
 
 
 	/**
 	 * List all Application Images
 	 */
-	imageApplicationGetAll: function($deferred, query) {
+	imageApplicationGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request({
 			query: {
 				type: Joi.string().required()
@@ -686,7 +718,7 @@ var DigitalOcean = PromiseObject.create({
 			query: extend({
 				type: 'application'
 			}, query)
-		}));
+		}, raw));
 	},
 
 	/**
@@ -694,7 +726,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method returns snapshots or backups that you have created in your own account.
 	 */
-	imageGetMine: function($deferred, query) {
+	imageGetMine: function($deferred, query, raw) {
 		$deferred.resolve(this._request({
 			query: {
 				private: Joi.boolean().required()
@@ -706,7 +738,7 @@ var DigitalOcean = PromiseObject.create({
 			query: extend({
 				private: true
 			}, query)
-		}));
+		}, raw));
 	},
 
 
@@ -715,7 +747,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method displays the attributes of an image.
 	 */
-	imageGet: function($deferred, id) {
+	imageGet: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				image_id: Joi.number().required()
@@ -727,7 +759,7 @@ var DigitalOcean = PromiseObject.create({
 			params: {
 				image_id: id
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -735,7 +767,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to destroy an image. There is no way to restore a deleted image so be careful and ensure your data is properly backed up.
 	 */
-	imageDestroy: function($deferred, id) {
+	imageDestroy: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				image_id: Joi.number().required()
@@ -746,7 +778,7 @@ var DigitalOcean = PromiseObject.create({
 			params: {
 				image_id: id
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -754,7 +786,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to transfer an image to a specified region.
 	 */
-	imageTransfer: function($deferred, id, body) {
+	imageTransfer: function($deferred, id, body, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				image_id: Joi.number().required()
@@ -773,7 +805,7 @@ var DigitalOcean = PromiseObject.create({
 			body: extend({
 				type: 'transfer'
 			}, body)
-		}));
+		}, raw));
 	},
 
 	/**
@@ -781,7 +813,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to transfer an image to a specified region.
 	 */
-	imageToSnapshot: function($deferred, id) {
+	imageToSnapshot: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				image_id: Joi.number().required()
@@ -799,7 +831,7 @@ var DigitalOcean = PromiseObject.create({
 			body: {
 				type: 'convert'
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -807,13 +839,13 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method lists all the available public SSH keys in your account that can be added to a droplet.
 	 */
-	sshKeyGetAll: function($deferred, query) {
+	sshKeyGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
 			method: 'GET',
 			path: 'account/keys',
 			required: 'ssh_keys',
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -821,7 +853,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to add a new public SSH key to your account.
 	 */
-	sshKeyAdd: function($deferred, body) {
+	sshKeyAdd: function($deferred, body, raw) {
 		$deferred.resolve(this._request({
 			body: {
 				name: Joi.string().required(),
@@ -832,7 +864,7 @@ var DigitalOcean = PromiseObject.create({
 			path: 'account/keys',
 			required: 'ssh_key',
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -840,7 +872,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method shows a specific public SSH key in your account that can be added to a droplet.
 	 */
-	sshKeyGet: function($deferred, id) {
+	sshKeyGet: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				key_id: Joi.number().required()
@@ -852,7 +884,7 @@ var DigitalOcean = PromiseObject.create({
 			params: {
 				key_id: id
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -860,7 +892,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method allows you to modify an existing public SSH key in your account.
 	 */
-	sshKeyUpdate: function($deferred, id, body) {
+	sshKeyUpdate: function($deferred, id, body, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				key_id: Joi.number().required()
@@ -876,7 +908,7 @@ var DigitalOcean = PromiseObject.create({
 				key_id: id
 			},
 			body: body || {}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -884,7 +916,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method will delete the SSH key from your account.
 	 */
-	sshKeyDestroy: function($deferred, id) {
+	sshKeyDestroy: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				key_id: Joi.alternatives().try(Joi.string(), Joi.number()).required()
@@ -895,7 +927,7 @@ var DigitalOcean = PromiseObject.create({
 			params: {
 				key_id: id
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -903,13 +935,13 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method returns all the available sizes that can be used to create a droplet.
 	 */
-	sizeGetAll: function($deferred, query) {
+	sizeGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
 			method: 'GET',
 			path: 'sizes',
 			required: 'sizes',
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -917,13 +949,13 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method returns all of your current domains.
 	 */
-	domainGetAll: function($deferred, query) {
+	domainGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
 			method: 'GET',
 			path: 'domains',
 			required: 'domains',
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -931,7 +963,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method creates a new domain name with an A record for the specified [ip_address].
 	 */
-	domainNew: function($deferred, body) {
+	domainNew: function($deferred, body, raw) {
 		$deferred.resolve(this._request({
 			body: {
 				name: Joi.string().required(),
@@ -942,7 +974,7 @@ var DigitalOcean = PromiseObject.create({
 			path: 'domains',
 			required: 'domains',
 			body: body || {}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -950,7 +982,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method returns the specified domain.
 	 */
-	domainGet: function($deferred, name) {
+	domainGet: function($deferred, name, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				domain_name: Joi.string().required()
@@ -962,7 +994,7 @@ var DigitalOcean = PromiseObject.create({
 			params: {
 				domain_name: name
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -970,7 +1002,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method deletes the specified domain.
 	 */
-	domainDestroy: function($deferred, name) {
+	domainDestroy: function($deferred, name, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				domain_name: Joi.string().required()
@@ -981,7 +1013,7 @@ var DigitalOcean = PromiseObject.create({
 			params: {
 				domain_name: name
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -989,13 +1021,13 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method returns all of your current domain records.
 	 */
-	domainRecordGetAll: function($deferred, name, query) {
+	domainRecordGetAll: function($deferred, name, query, raw) {
 		$deferred.resolve(this._request(null, {
 			method: 'GET',
 			path: 'domains/:domain_name/records',
 			required: 'domain_records',
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -1003,7 +1035,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method creates a new domain name with an A record for the specified [ip_address].
 	 */
-	domainNew: function($deferred, name, body) {
+	domainNew: function($deferred, name, body, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				domain_name: Joi.string().required()
@@ -1024,7 +1056,7 @@ var DigitalOcean = PromiseObject.create({
 				domain_name: name
 			},
 			body: body || {}
-		}));
+		}, raw));
 	},
 
 
@@ -1033,7 +1065,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method returns the specified domain record.
 	 */
-	domainRecordGet: function($deferred, name, id) {
+	domainRecordGet: function($deferred, name, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				domain_name: Joi.string().required(),
@@ -1047,7 +1079,7 @@ var DigitalOcean = PromiseObject.create({
 				domain_name: name,
 				record_id: id
 			}
-		}));
+		}, raw));
 	},
 
 
@@ -1056,7 +1088,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method edits an existing domain record.
 	 */
-	domainRecordEdit: function($deferred, name, id, body) {
+	domainRecordEdit: function($deferred, name, id, body, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				domain_name: Joi.string().required(),
@@ -1079,7 +1111,7 @@ var DigitalOcean = PromiseObject.create({
 				record_id: id
 			},
 			body: body || {}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -1087,7 +1119,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method deletes the specified domain record.
 	 */
-	domainRecordDestroy: function($deferred, name, id) {
+	domainRecordDestroy: function($deferred, name, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				domain_name: Joi.string().required(),
@@ -1100,7 +1132,7 @@ var DigitalOcean = PromiseObject.create({
 				domain_name: name,
 				record_id: id
 			}
-		}));
+		}, raw));
 	},
 
 	/**
@@ -1108,19 +1140,19 @@ var DigitalOcean = PromiseObject.create({
 	 *
 	 * List all of the actions that have been executed on the current account.
 	 */
-	actionsGetAll: function($deferred, query) {
+	actionsGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
 			method: 'GET',
 			path: 'actions',
 			required: 'actions',
 			query: query || {}
-		}));
+		}, raw));
 	},
 
 	/**
 	 * Retrieve an existing Action
 	 */
-	actionsGet: function($deferred, id) {
+	actionsGet: function($deferred, id, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				action_id: Joi.number().required()
@@ -1132,7 +1164,7 @@ var DigitalOcean = PromiseObject.create({
 			params: {
 				action_id: id
 			}
-		}));
+		}, raw));
 	}
 });
 
