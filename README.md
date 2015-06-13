@@ -56,7 +56,7 @@ api.accountGet(true);
 ```
 
 would return
-```json
+```
 	{
 		account: {
 			droplet_limit: 25,
