@@ -153,7 +153,7 @@ var DigitalOcean = PromiseObject.create({
 				name: Joi.string().required(),
 				region: Joi.string().required(),
 				size: Joi.string().required(),
-				image: Joi.string().required(),
+				image: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
 				ssh_keys: Joi.array().items(Joi.string(), Joi.number()),
 				backups: Joi.boolean(),
 				ipv6: Joi.boolean(),
@@ -163,7 +163,7 @@ var DigitalOcean = PromiseObject.create({
 		}, {
 			method: 'POST',
 			path: 'droplets',
-			required: 'droplets',
+			required: 'droplet',
 			body: body || {}
 		}));
 	},
