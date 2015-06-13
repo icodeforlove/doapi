@@ -40,7 +40,7 @@ new DigitalOceanAPI({
 ```
 
 ## Pagination
-you can pass a pagination params into any method that has a `body` or `query` argument.
+you can pass pagination params into any method that has a `body` or `query` argument.
 
 ```js
 api.dropletGetAll({per_page: 1, page: 2}).then(function (droplets) {
@@ -49,10 +49,10 @@ api.dropletGetAll({per_page: 1, page: 2}).then(function (droplets) {
 ```
 
 ## Raw
-you can pass raw into any method and it will return the full response body with request info + ratelimiting details, the default is false.
+if you set raw it will return the full response body with `request info` and `ratelimiting details`, the default is false.
 
 ```js
-api.accountGet(true);
+api.accountGet(true)
 ```
 
 would return
@@ -76,7 +76,7 @@ would return
 	}
 ```
 
-and with raw set to false (the default) it would return
+and with raw set to false (the default), it would return
 
 ```
 	{
