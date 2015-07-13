@@ -1035,7 +1035,7 @@ var DigitalOcean = PromiseObject.create({
 	 * 
 	 * This method creates a new domain name with an A record for the specified [ip_address].
 	 */
-	domainNew: function($deferred, name, body, raw) {
+	domainRecordNew: function($deferred, name, body, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				domain_name: Joi.string().required()
