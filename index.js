@@ -863,7 +863,7 @@ var DigitalOcean = PromiseObject.create({
 			method: 'POST',
 			path: 'account/keys',
 			required: 'ssh_key',
-			query: query || {}
+			body: body || {}
 		}, raw));
 	},
 
