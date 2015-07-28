@@ -73,7 +73,7 @@ var DigitalOcean = PromiseObject.create({
 		    delay: function (attempt) {
 		        return attempt * 1000;
 		    },
-		    maxRetries: $self.maxRetries,
+		    maxRetries: $self._maxRetries,
 		    onAttempt: function (attempt) {
 		    	if (attempt === 1) {
 		    		debug(('[doapi] ' + $config.method + ' "' + getURL + '"')[attempt > 1 ? 'red' : 'grey']);
