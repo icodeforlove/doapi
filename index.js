@@ -161,7 +161,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Show All Active Droplets
-	 * 
+	 *
 	 * This method returns all active droplets that are currently running in your account. All available API information is presented for each droplet.
 	 */
 	dropletGetAll: function ($deferred, query, raw) {
@@ -176,7 +176,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * New Droplet
-	 * 
+	 *
 	 * This method allows you to create a new droplet. See the required parameters section below for an explanation of the variables that are needed to create a new droplet.
 	 */
 	dropletNew: function($deferred, body, raw) {
@@ -309,7 +309,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * List Droplet Upgrades
-	 * 
+	 *
 	 * list of droplets that are scheduled to be upgraded
 	 */
 
@@ -324,7 +324,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Show Droplet
-	 * 
+	 *
 	 * This method returns full information for a specific droplet ID that is passed in the URL.
 	 */
 	dropletGet: function($deferred, id, raw) {
@@ -344,7 +344,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Reboot Droplet
-	 * 
+	 *
 	 * This method allows you to reboot a droplet. This is the preferred method to use if a server is not responding.
 	 */
 	dropletReboot: function($deferred, id, raw) {
@@ -370,7 +370,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Power Cycle Droplet
-	 * 
+	 *
 	 * This method allows you to power cycle a droplet. This will turn off the droplet and then turn it back on.
 	 */
 	dropletPowerCycle: function($deferred, id, raw) {
@@ -396,7 +396,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Shut Down Droplet
-	 * 
+	 *
 	 * This method allows you to shutdown a running droplet. The droplet will remain in your account.
 	 */
 	dropletShutdown: function($deferred, id, raw) {
@@ -422,7 +422,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Power Off
-	 * 
+	 *
 	 * This method allows you to poweroff a running droplet. The droplet will remain in your account.
 	 */
 	dropletPowerOff: function($deferred, id, raw) {
@@ -448,7 +448,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Power On
-	 * 
+	 *
 	 * This method allows you to poweron a powered off droplet.
 	 */
 	dropletPowerOn: function($deferred, id, raw) {
@@ -474,7 +474,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Reset Root Password
-	 * 
+	 *
 	 * This method will reset the root password for a droplet. Please be aware that this will reboot the droplet to allow resetting the password.
 	 */
 	dropletPasswordReset: function($deferred, id, raw) {
@@ -501,7 +501,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Resize Droplet
-	 * 
+	 *
 	 * This method allows you to resize a specific droplet to a different size. This will affect the number of processors and memory allocated to the droplet.
 	 */
 	dropletResize: function($deferred, id, body, raw) {
@@ -529,7 +529,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Take a Snapshot
-	 * 
+	 *
 	 * This method allows you to take a snapshot of the running droplet, which can later be restored or used to create a new droplet from the same image. Please be aware this may cause a reboot.
 	 */
 	dropletSnapshot: function($deferred, id, body, raw) {
@@ -556,7 +556,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Restore Droplet
-	 * 
+	 *
 	 * This method allows you to restore a droplet with a previous image or snapshot. This will be a mirror copy of the image or snapshot to your droplet. Be sure you have backed up any necessary information prior to restore.
 	 */
 	dropletRestore: function($deferred, id, body, raw) {
@@ -584,7 +584,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Rebuild Droplet
-	 * 
+	 *
 	 * This method allows you to reinstall a droplet with a default image. This is useful if you want to start again but retain the same IP address for your droplet.
 	 */
 	dropletRebuild: function($deferred, id, body, raw) {
@@ -611,7 +611,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Rename Droplet
-	 * 
+	 *
 	 * This method renames the droplet to the specified name.
 	 */
 	dropletRename: function($deferred, id, body, raw) {
@@ -635,10 +635,10 @@ var DigitalOcean = PromiseObject.create({
 			}, body)
 		}, raw));
 	},
-	
+
 	/**
 	 * Destroy Droplet
-	 * 
+	 *
 	 * This method destroys one of your droplets - this is irreversible.
 	 */
 	dropletDestroy: function($deferred, id, raw) {
@@ -657,7 +657,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * All Regions
-	 * 
+	 *
 	 * This method will return all the available regions within the Digital Ocean cloud.
 	 */
 	regionGetAll: function($deferred, query, raw) {
@@ -672,7 +672,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * All Images
-	 * 
+	 *
 	 * This method returns all the available images that can be accessed by your client ID. You will have access to all public images by default, and any snapshots or backups that you have created in your own account.
 	 */
 	imageGetAll: function($deferred, query, raw) {
@@ -723,7 +723,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Mine images
-	 * 
+	 *
 	 * This method returns snapshots or backups that you have created in your own account.
 	 */
 	imageGetMine: function($deferred, query, raw) {
@@ -744,7 +744,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Show Image
-	 * 
+	 *
 	 * This method displays the attributes of an image.
 	 */
 	imageGet: function($deferred, id, raw) {
@@ -764,7 +764,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Destroy Image
-	 * 
+	 *
 	 * This method allows you to destroy an image. There is no way to restore a deleted image so be careful and ensure your data is properly backed up.
 	 */
 	imageDestroy: function($deferred, id, raw) {
@@ -783,7 +783,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Transfer Image
-	 * 
+	 *
 	 * This method allows you to transfer an image to a specified region.
 	 */
 	imageTransfer: function($deferred, id, body, raw) {
@@ -810,7 +810,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Convert Image To Snapshot
-	 * 
+	 *
 	 * This method allows you to transfer an image to a specified region.
 	 */
 	imageToSnapshot: function($deferred, id, raw) {
@@ -836,7 +836,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * All SSH Keys
-	 * 
+	 *
 	 * This method lists all the available public SSH keys in your account that can be added to a droplet.
 	 */
 	sshKeyGetAll: function($deferred, query, raw) {
@@ -850,7 +850,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Add SSH Key.
-	 * 
+	 *
 	 * This method allows you to add a new public SSH key to your account.
 	 */
 	sshKeyAdd: function($deferred, body, raw) {
@@ -869,7 +869,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Show SSH Key
-	 * 
+	 *
 	 * This method shows a specific public SSH key in your account that can be added to a droplet.
 	 */
 	sshKeyGet: function($deferred, id, raw) {
@@ -889,7 +889,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Edit SSH Key
-	 * 
+	 *
 	 * This method allows you to modify an existing public SSH key in your account.
 	 */
 	sshKeyUpdate: function($deferred, id, body, raw) {
@@ -913,7 +913,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Destroy SSH Key
-	 * 
+	 *
 	 * This method will delete the SSH key from your account.
 	 */
 	sshKeyDestroy: function($deferred, id, raw) {
@@ -932,7 +932,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * All Sizes
-	 * 
+	 *
 	 * This method returns all the available sizes that can be used to create a droplet.
 	 */
 	sizeGetAll: function($deferred, query, raw) {
@@ -946,7 +946,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * All Domains
-	 * 
+	 *
 	 * This method returns all of your current domains.
 	 */
 	domainGetAll: function($deferred, query, raw) {
@@ -960,7 +960,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * New Domain
-	 * 
+	 *
 	 * This method creates a new domain name with an A record for the specified [ip_address].
 	 */
 	domainNew: function($deferred, body, raw) {
@@ -979,7 +979,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Domain Show
-	 * 
+	 *
 	 * This method returns the specified domain.
 	 */
 	domainGet: function($deferred, name, raw) {
@@ -999,7 +999,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Destroy Domain
-	 * 
+	 *
 	 * This method deletes the specified domain.
 	 */
 	domainDestroy: function($deferred, name, raw) {
@@ -1018,21 +1018,28 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * All Domain Records
-	 * 
+	 *
 	 * This method returns all of your current domain records.
 	 */
-	domainRecordGetAll: function($deferred, name, query, raw) {
-		$deferred.resolve(this._request(null, {
-			method: 'GET',
-			path: 'domains/:domain_name/records',
-			required: 'domain_records',
-			query: query || {}
-		}, raw));
-	},
+	 domainRecordGetAll: function($deferred, name, query, raw) {
+         $deferred.resolve(this._request({
+             params: {
+                 domain_name: Joi.string().required(),
+             }
+         }, {
+             method: 'GET',
+             path: 'domains/:domain_name/records',
+             required: 'domain_records',
+             query: query || {},
+             params: {
+                 domain_name: name
+             }
+         }, raw));
+     },
 
 	/**
 	 * New Domain Record
-	 * 
+	 *
 	 * This method creates a new domain name with an A record for the specified [ip_address].
 	 */
 	domainRecordNew: function($deferred, name, body, raw) {
@@ -1062,7 +1069,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Show Domain Record
-	 * 
+	 *
 	 * This method returns the specified domain record.
 	 */
 	domainRecordGet: function($deferred, name, id, raw) {
@@ -1085,7 +1092,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Edit Domain Record
-	 * 
+	 *
 	 * This method edits an existing domain record.
 	 */
 	domainRecordEdit: function($deferred, name, id, body, raw) {
@@ -1116,7 +1123,7 @@ var DigitalOcean = PromiseObject.create({
 
 	/**
 	 * Destroy Domain Record
-	 * 
+	 *
 	 * This method deletes the specified domain record.
 	 */
 	domainRecordDestroy: function($deferred, name, id, raw) {
