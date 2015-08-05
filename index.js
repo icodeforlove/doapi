@@ -52,6 +52,7 @@ var DigitalOcean = PromiseObject.create({
 		}
 
 		schema.path = Joi.string().required();
+		schema.callee = Joi.string().required();
 		schema.required = Joi.string();
 		schema.method = Joi.valid(['GET', 'POST', 'PUT', 'DELETE']).required();
 		schema.query = extend({
@@ -70,22 +71,22 @@ var DigitalOcean = PromiseObject.create({
 		var getURL = this.API_URL + '/' + $self._resolvePath($config.path, $config.params) + (Object.keys($config.query).length ? '?' + querystring.stringify($config.query) : ''); // Construct URL with parameters
 
 		$deferred.resolve(PromiseRetryer.run({
-		    delay: function (attempt) {
-		        return attempt * 1000;
-		    },
-		    maxRetries: $self._maxRetries,
-		    onAttempt: function (attempt) {
-		    	if (attempt === 1) {
-		    		debug(('[doapi] ' + $config.method + ' "' + getURL + '"')[attempt > 1 ? 'red' : 'grey']);
-		    	} else {
-		    		debug(('[doapi attempt ' + attempt + '] ' + $config.method + ' "' + getURL + '"')[attempt > 1 ? 'red' : 'grey']);
-		    	}
-		    },
-		    promise: function (attempt) {
-		        return new BlueBird(function (resolve, reject) {
-			        request(
-			        	{
-			        		method: $config.method,
+			delay: function (attempt) {
+				return attempt * 1000;
+			},
+			maxRetries: $self._maxRetries,
+			onAttempt: function (attempt) {
+				if (attempt === 1) {
+					debug(('[doapi] ' + $config.method + ' "' + getURL + '"')[attempt > 1 ? 'red' : 'grey']);
+				} else {
+					debug(('[doapi attempt ' + attempt + '] ' + $config.method + ' "' + getURL + '"')[attempt > 1 ? 'red' : 'grey']);
+				}
+			},
+			promise: function (attempt) {
+				return new BlueBird(function (resolve, reject) {
+					request(
+						{
+							method: $config.method,
 							url: getURL,
 							json: true,
 							headers: {
@@ -94,24 +95,39 @@ var DigitalOcean = PromiseObject.create({
 							body: $config.body
 						},
 						function(error, response, body) {
-							if (!error && body && (response.statusCode < 200 || response.statusCode > 299)) {
-								return reject(new Error(body.description || body.message));
+							var ratelimit, requestinfo;
+
+							if (response.headers) {
+								ratelimit = {
+									limit: response.headers['ratelimit-limit'],
+									remaining: response.headers['ratelimit-remaining'],
+									reset: response.headers['ratelimit-reset']
+								};
+
+								requestinfo = {
+									id: response.headers['x-request-id'],
+									runtime: response.headers['x-runtime'],
+								};
 							}
 
-							if (error || ($config.required && !body[$config.required])) {
-								return reject(new Error('Request Failed'));
+							if (!error && body && (response.statusCode < 200 || response.statusCode > 299)) {
+								return reject(new Error(
+									'\nRequest Details: ' + JSON.stringify(requestinfo) + 
+									'\nAPI Error: ' + (body.description || body.message)
+								));
+							} else if (error) {
+								return reject(new Error(
+									'Request Failed: ' + error
+								));
+							} else if ($config.required && !body[$config.required]) {
+								return reject(new Error(
+									'\nRequest Details: ' + JSON.stringify(requestinfo) + 
+									'\nAPI Error: Response was missing required field (' + $config.required + ')'
+								));
 							} else {
 								if ($config.raw || $self._raw && $config.raw !== false) {
-  									body.ratelimit = {
-  										limit: response.headers['ratelimit-limit'],
-  										remaining: response.headers['ratelimit-remaining'],
-  										reset: response.headers['ratelimit-reset']
-  									};
-
-  									body.requestinfo = {
-  										id: response.headers['x-request-id'],
-  										runtime: response.headers['x-runtime'],
-  									};
+									body.ratelimit = ratelimit;
+									body.requestinfo = requestinfo;
 
 									resolve(body || {});
 								} else if ($config.required) {
@@ -122,8 +138,8 @@ var DigitalOcean = PromiseObject.create({
 							}
 						}
 					);
-		    	});
-		    }
+				});
+			}
 		}));
 	},
 
@@ -139,11 +155,11 @@ var DigitalOcean = PromiseObject.create({
 				$deferred.resolve($self._tryRequest(payload));
 			})
 			.catch(function (error) {
-				var errorMessage = ('DigitalOceanApiError: [' + payload.method + '] /' + $self._resolvePath(payload.path, payload.params) + '\n').red;
+				var errorMessage = ('DigitalOceanApiError: validation error when calling "' + payload.callee + '"\n[' + payload.method + '] /' + $self._resolvePath(payload.path, payload.params) + '\n').red;
 
 				errorMessage += error.annotate();
 
-				$deferred.reject(new Error(errorMessage))
+				$deferred.reject(errorMessage);
 			});
 	},
 
@@ -152,6 +168,7 @@ var DigitalOcean = PromiseObject.create({
 	 */
 	accountGet: function ($deferred, raw) {
 		$deferred.resolve(this._request(null, {
+			callee: 'accountGet',
 			method: 'GET',
 			path: 'account',
 			required: 'account'
@@ -166,6 +183,7 @@ var DigitalOcean = PromiseObject.create({
 	 */
 	dropletGetAll: function ($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
+			callee: 'dropletGetAll',
 			method: 'GET',
 			path: 'droplets',
 			required: 'droplets',
@@ -193,6 +211,7 @@ var DigitalOcean = PromiseObject.create({
 				user_data: Joi.string()
 			}
 		}, {
+			callee: 'dropletNew',
 			method: 'POST',
 			path: 'droplets',
 			required: 'droplet',
@@ -209,6 +228,7 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: Joi.number().required()
 			}
 		}, {
+			callee: 'dropletKernalsGetAll',
 			method: 'GET',
 			path: 'droplets/:droplet_id/kernels',
 			required: 'kernels',
@@ -228,6 +248,7 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: Joi.number().required()
 			}
 		}, {
+			callee: 'dropletSnapshotsGetAll',
 			method: 'GET',
 			path: 'droplets/:droplet_id/snapshots',
 			required: 'snapshots',
@@ -247,6 +268,7 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: Joi.number().required()
 			}
 		}, {
+			callee: 'dropletBackupsGetAll',
 			method: 'GET',
 			path: 'droplets/:droplet_id/backups',
 			required: 'backups',
@@ -266,6 +288,7 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: Joi.number().required()
 			}
 		}, {
+			callee: 'dropletActionGetAll',
 			method: 'GET',
 			path: 'droplets/:droplet_id/actions',
 			required: 'actions',
@@ -285,6 +308,7 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: Joi.number().required()
 			}
 		}, {
+			callee: 'dropletNeighborsGetAll',
 			method: 'GET',
 			path: 'droplets/:droplet_id/neighbors',
 			required: 'droplets',
@@ -300,6 +324,7 @@ var DigitalOcean = PromiseObject.create({
 	 */
 	reportDropletNeighborsGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
+			callee: 'reportDropletNeighborsGetAll',
 			method: 'GET',
 			path: 'reports/droplet_neighbors',
 			required: 'neighbors',
@@ -315,6 +340,7 @@ var DigitalOcean = PromiseObject.create({
 
 	dropletUpgradesGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
+			callee: 'dropletUpgradesGetAll',
 			method: 'GET',
 			path: 'droplet_upgrades',
 			query: query || {}
@@ -333,6 +359,7 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: Joi.number().required()
 			}
 		}, {
+			callee: 'dropletGet',
 			method: 'GET',
 			path: 'droplets/:droplet_id',
 			required: 'droplet',
@@ -356,6 +383,7 @@ var DigitalOcean = PromiseObject.create({
 				type: Joi.string().required()
 			}
 		}, {
+			callee: 'dropletReboot',
 			method: 'POST',
 			path: 'droplets/:droplet_id/actions',
 			required: 'action',
@@ -382,6 +410,7 @@ var DigitalOcean = PromiseObject.create({
 				type: Joi.string().required()
 			}
 		}, {
+			callee: 'dropletPowerCycle',
 			method: 'POST',
 			path: 'droplets/:droplet_id/actions',
 			required: 'action',
@@ -408,6 +437,7 @@ var DigitalOcean = PromiseObject.create({
 				type: Joi.string().required()
 			}
 		}, {
+			callee: 'dropletShutdown',
 			method: 'POST',
 			path: 'droplets/:droplet_id/actions',
 			required: 'action',
@@ -434,6 +464,7 @@ var DigitalOcean = PromiseObject.create({
 				type: Joi.string().required()
 			}
 		}, {
+			callee: 'dropletPowerOff',
 			method: 'POST',
 			path: 'droplets/:droplet_id/actions',
 			required: 'action',
@@ -460,6 +491,7 @@ var DigitalOcean = PromiseObject.create({
 				type: Joi.string().required()
 			}
 		}, {
+			callee: 'dropletPowerOn',
 			method: 'POST',
 			path: 'droplets/:droplet_id/actions',
 			required: 'action',
@@ -486,6 +518,7 @@ var DigitalOcean = PromiseObject.create({
 				type: Joi.string().required()
 			}
 		}, {
+			callee: 'dropletPasswordReset',
 			method: 'POST',
 			path: 'droplets/:droplet_id/actions',
 			required: 'action',
@@ -515,6 +548,7 @@ var DigitalOcean = PromiseObject.create({
 				disk: Joi.boolean()
 			}
 		}, {
+			callee: 'dropletResize',
 			method: 'POST',
 			path: 'droplets/:droplet_id/actions',
 			required: 'action',
@@ -542,6 +576,7 @@ var DigitalOcean = PromiseObject.create({
 				name: Joi.string()
 			}
 		}, {
+			callee: 'dropletSnapshot',
 			method: 'POST',
 			path: 'droplets/:droplet_id/actions',
 			required: 'action',
@@ -569,6 +604,7 @@ var DigitalOcean = PromiseObject.create({
 				image: Joi.alternatives().try(Joi.string(), Joi.number()).required()
 			}
 		}, {
+			callee: 'dropletRestore',
 			method: 'POST',
 			path: 'droplets/:droplet_id/actions',
 			required: 'action',
@@ -597,6 +633,7 @@ var DigitalOcean = PromiseObject.create({
 				image: Joi.alternatives().try(Joi.string(), Joi.number()).required()
 			}
 		}, {
+			callee: 'dropletRebuild',
 			method: 'POST',
 			path: 'droplets/:droplet_id/actions',
 			required: 'action',
@@ -624,6 +661,7 @@ var DigitalOcean = PromiseObject.create({
 				name: Joi.string().required()
 			}
 		}, {
+			callee: 'dropletRename',
 			method: 'POST',
 			path: 'droplets/:droplet_id/actions',
 			required: 'action',
@@ -647,6 +685,7 @@ var DigitalOcean = PromiseObject.create({
 				droplet_id: Joi.number().required()
 			}
 		}, {
+			callee: 'dropletDestroy',
 			method: 'DELETE',
 			path: 'droplets/:droplet_id',
 			params: {
@@ -662,6 +701,7 @@ var DigitalOcean = PromiseObject.create({
 	 */
 	regionGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
+			callee: 'regionGetAll',
 			method: 'GET',
 			path: 'regions',
 			required: 'regions',
@@ -677,6 +717,7 @@ var DigitalOcean = PromiseObject.create({
 	 */
 	imageGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
+			callee: 'imageGetAll',
 			method: 'GET',
 			path: 'images',
 			required: 'images',
@@ -693,6 +734,7 @@ var DigitalOcean = PromiseObject.create({
 				type: Joi.string().required()
 			}
 		}, {
+			callee: 'imageDistributionGetAll',
 			method: 'GET',
 			path: 'images',
 			required: 'images',
@@ -712,6 +754,7 @@ var DigitalOcean = PromiseObject.create({
 				type: Joi.string().required()
 			}
 		}, {
+			callee: 'imageApplicationGetAll',
 			method: 'GET',
 			path: 'images',
 			required: 'images',
@@ -732,6 +775,7 @@ var DigitalOcean = PromiseObject.create({
 				private: Joi.boolean().required()
 			}
 		}, {
+			callee: 'imageGetMine',
 			method: 'GET',
 			path: 'images',
 			required: 'images',
@@ -753,6 +797,7 @@ var DigitalOcean = PromiseObject.create({
 				image_id: Joi.number().required()
 			}
 		}, {
+			callee: 'imageGet',
 			method: 'GET',
 			path: 'images/:image_id',
 			required: 'image',
@@ -773,6 +818,7 @@ var DigitalOcean = PromiseObject.create({
 				image_id: Joi.number().required()
 			}
 		}, {
+			callee: 'imageDestroy',
 			method: 'DELETE',
 			path: 'images/:image_id',
 			params: {
@@ -796,6 +842,7 @@ var DigitalOcean = PromiseObject.create({
 				region: Joi.string().required()
 			}
 		}, {
+			callee: 'imageTransfer',
 			method: 'POST',
 			path: 'images/:image_id/actions',
 			required: 'action',
@@ -822,6 +869,7 @@ var DigitalOcean = PromiseObject.create({
 				type: Joi.string().required()
 			}
 		}, {
+			callee: 'imageToSnapshot',
 			method: 'POST',
 			path: 'images/:image_id/actions',
 			required: 'action',
@@ -841,6 +889,7 @@ var DigitalOcean = PromiseObject.create({
 	 */
 	sshKeyGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
+			callee: 'sshKeyGetAll',
 			method: 'GET',
 			path: 'account/keys',
 			required: 'ssh_keys',
@@ -860,6 +909,7 @@ var DigitalOcean = PromiseObject.create({
 				public_key: Joi.string().required()
 			}
 		}, {
+			callee: 'sshKeyAdd',
 			method: 'POST',
 			path: 'account/keys',
 			required: 'ssh_key',
@@ -878,6 +928,7 @@ var DigitalOcean = PromiseObject.create({
 				key_id: Joi.number().required()
 			}
 		}, {
+			callee: 'sshKeyGet',
 			method: 'GET',
 			path: 'account/keys/:key_id',
 			required: 'ssh_key',
@@ -901,6 +952,7 @@ var DigitalOcean = PromiseObject.create({
 				name: Joi.string().required()
 			}
 		}, {
+			callee: 'sshKeyUpdate',
 			method: 'PUT',
 			path: 'account/keys/:key_id',
 			required: 'ssh_key',
@@ -922,6 +974,7 @@ var DigitalOcean = PromiseObject.create({
 				key_id: Joi.alternatives().try(Joi.string(), Joi.number()).required()
 			}
 		}, {
+			callee: 'sshKeyDestroy',
 			method: 'DELETE',
 			path: 'account/keys/:key_id',
 			params: {
@@ -937,6 +990,7 @@ var DigitalOcean = PromiseObject.create({
 	 */
 	sizeGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
+			callee: 'sizeGetAll',
 			method: 'GET',
 			path: 'sizes',
 			required: 'sizes',
@@ -951,6 +1005,7 @@ var DigitalOcean = PromiseObject.create({
 	 */
 	domainGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
+			callee: 'domainGetAll',
 			method: 'GET',
 			path: 'domains',
 			required: 'domains',
@@ -970,6 +1025,7 @@ var DigitalOcean = PromiseObject.create({
 				ip_address: Joi.string().required()
 			}
 		}, {
+			callee: 'domainNew',
 			method: 'POST',
 			path: 'domains',
 			required: 'domains',
@@ -988,6 +1044,7 @@ var DigitalOcean = PromiseObject.create({
 				domain_name: Joi.string().required()
 			}
 		}, {
+			callee: 'domainGet',
 			method: 'GET',
 			path: 'domains/:domain_name',
 			required: 'domain',
@@ -1008,6 +1065,7 @@ var DigitalOcean = PromiseObject.create({
 				domain_name: Joi.string().required()
 			}
 		}, {
+			callee: 'domainDestroy',
 			method: 'DELETE',
 			path: 'domains/:domain_name',
 			params: {
@@ -1021,21 +1079,22 @@ var DigitalOcean = PromiseObject.create({
 	 *
 	 * This method returns all of your current domain records.
 	 */
-	 domainRecordGetAll: function($deferred, name, query, raw) {
-         $deferred.resolve(this._request({
-             params: {
-                 domain_name: Joi.string().required(),
-             }
-         }, {
-             method: 'GET',
-             path: 'domains/:domain_name/records',
-             required: 'domain_records',
-             query: query || {},
-             params: {
-                 domain_name: name
-             }
-         }, raw));
-     },
+	domainRecordGetAll: function($deferred, name, query, raw) {
+		$deferred.resolve(this._request({
+			params: {
+				domain_name: Joi.string().required(),
+			}
+		}, {
+			callee: 'domainRecordGetAll',
+			method: 'GET',
+			path: 'domains/:domain_name/records',
+			required: 'domain_records',
+			query: query || {},
+			params: {
+				domain_name: name
+			}
+		}, raw));
+	},
 
 	/**
 	 * New Domain Record
@@ -1056,6 +1115,7 @@ var DigitalOcean = PromiseObject.create({
 				weight: Joi.number()
 			}
 		}, {
+			callee: 'domainRecordNew',
 			method: 'POST',
 			path: 'domains',
 			required: 'domain_record',
@@ -1079,6 +1139,7 @@ var DigitalOcean = PromiseObject.create({
 				record_id: Joi.number().required()
 			}
 		}, {
+			callee: 'domainRecordGet',
 			method: 'GET',
 			path: 'domains/:domain_name/records/:record_id',
 			required: 'domain_record',
@@ -1110,6 +1171,7 @@ var DigitalOcean = PromiseObject.create({
 				weight: Joi.number()
 			}
 		}, {
+			callee: 'domainRecordEdit',
 			method: 'PUT',
 			path: 'domains/:domain_name/records/:record_id',
 			required: 'domain_record',
@@ -1133,6 +1195,7 @@ var DigitalOcean = PromiseObject.create({
 				record_id: Joi.number().required()
 			}
 		}, {
+			callee: 'domainRecordDestroy',
 			method: 'DELETE',
 			path: 'domains/:domain_name/records/:record_id',
 			params: {
@@ -1149,6 +1212,7 @@ var DigitalOcean = PromiseObject.create({
 	 */
 	actionsGetAll: function($deferred, query, raw) {
 		$deferred.resolve(this._request(null, {
+			callee: 'actionsGetAll',
 			method: 'GET',
 			path: 'actions',
 			required: 'actions',
@@ -1165,6 +1229,7 @@ var DigitalOcean = PromiseObject.create({
 				action_id: Joi.number().required()
 			}
 		}, {
+			callee: 'actionsGet',
 			method: 'GET',
 			path: 'actions/:action_id',
 			required: 'action',

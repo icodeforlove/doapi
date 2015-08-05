@@ -98,7 +98,7 @@ DEBUG=http node myfile.js
 
 also all methods enforce type checking so invalid usage would result in errors like this
 
-![image](http://cdn.img42.com/f907facdbd064128b0fcff1e482fced5.png)
+![image](http://cdn.img42.com/cf073d9c3bf95bc0355045a024ad0be4.png)
 
 ## Methods
 
