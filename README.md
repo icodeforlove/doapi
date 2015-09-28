@@ -167,6 +167,7 @@ All methods follow the [official API documentation](https://developers.digitaloc
 - [domainGet(String name [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-domain)
 - [domainDestroy(String name [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#delete-a-domain)
 - [domainRecordGetAll(String name, Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-domain-records)
+- [domainRecordNew(String name, Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#create-a-new-domain-record)
 - [domainRecordGet(String name, Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-domain-record)
 - [domainRecordEdit(String name, Number id, Object body [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#update-a-domain-record)
 - [domainRecordDestroy(String name, Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#delete-a-domain-record)
