@@ -8,7 +8,8 @@
   "keywords": [
     "digitalocean",
     "digitalocean-api",
-    "digitalocean v2"
+    "digitalocean v2",
+    "digital ocean api"
   ],
   "homepage": "https://github.com/icodeforlove/doapi",
   "repository": {
