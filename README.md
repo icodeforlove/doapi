@@ -177,3 +177,12 @@ All methods follow the [official API documentation](https://developers.digitaloc
 
 - [actionsGetAll(String name [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-actions)
 - [actionsGet(Number id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-action)
+
+### Floating IPs
+
+- [floatingIpGetAll(Object query [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#list-all-floating-ips)
+- [floatingIpGet(String ip [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-floating-ip)
+- [floatingIpNew(Object body, [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#create-a-new-floating-ip-assigned-to-a-droplet)
+- [floatingIpDestroy(String ip [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#delete-a-floating-ips)
+- [floatingIpAssign(String droplet_id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#assign-a-floating-ip-to-a-droplet)
+- [floatingIpUnassign(String droplet_id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#unassign-a-floating-ip)

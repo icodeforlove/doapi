@@ -1237,6 +1237,133 @@ var DigitalOcean = PromiseObject.create({
 				action_id: id
 			}
 		}, raw));
+	},
+
+	/**
+	 * List all Actions
+	 *
+	 * List all of the actions that have been executed on the current account.
+	 * https://developers.digitalocean.com/documentation/v2/#list-all-floating-ips
+	 */
+	floatingIpGetAll: function ($deferred, query, raw) {
+		$deferred.resolve(this._request(null, {
+			callee: 'floatingIpsGetAll',
+			method: 'GET',
+			path: 'floating_ips',
+			required: 'floating_ips',
+			query: query || {}
+		}, raw));
+	},
+
+	/**
+	 * Retrieve an existing Floating Ip
+	 */
+	floatingIpGet: function($deferred, ip, raw) {
+		$deferred.resolve(this._request({
+			params: {
+				ip: Joi.string().required()
+			}
+		}, {
+			callee: 'floatingIpsGet',
+			method: 'GET',
+			path: 'floating_ips/:ip',
+			required: 'floating_ip',
+			params: {
+				ip: ip
+			}
+		}, raw));
+	},
+
+	/**
+	 * New floating Ip
+	 *
+	 * This method creates a new floating ip
+	 */
+	floatingIpNew: function($deferred, body, raw) {
+		$deferred.resolve(this._request({
+			body: Joi.object({
+				region: Joi.string(),
+				droplet_id: Joi.number()
+			}).min(1).required()
+		}, {
+			callee: 'floatingIpNew',
+			method: 'POST',
+			path: 'floating_ips',
+			required: 'floating_ip',
+			body: body || {}
+		}, raw));
+	},
+
+	/**
+	 * Destroy a floating Ip
+	 *
+	 * This method deletes the specified floating ip
+	 */
+	floatingIpDestroy: function($deferred, ip, raw) {
+		$deferred.resolve(this._request({
+			params: {
+				ip: Joi.string().required()
+			}
+		}, {
+			callee: 'domainRecordDestroy',
+			method: 'DELETE',
+			path: 'floating_ips/:ip',
+			params: {
+				ip: ip
+			}
+		}, raw));
+	},
+
+	/**
+	 * Assign a Floating IP to a Droplet
+	 */
+	floatingIpAssign: function($deferred, ip, body, raw) {
+		$deferred.resolve(this._request({
+			params: {
+				ip: Joi.string().required()
+			},
+			body: {
+				type: Joi.string().required(),
+				droplet_id: Joi.number().required()
+			}
+		}, {
+			callee: 'dropletReboot',
+			method: 'POST',
+			path: 'floating_ips/:ip/actions',
+			required: 'action',
+			params: {
+				ip: ip
+			},
+			body: extend({
+				type: 'assign'
+			}, body)
+		}, raw));
+	},
+
+	/**
+	 * Unassign a Floating IP
+	 */
+	floatingIpUnassign: function($deferred, ip, body, raw) {
+		$deferred.resolve(this._request({
+			params: {
+				ip: Joi.string().required()
+			},
+			body: {
+				type: Joi.string().required(),
+				droplet_id: Joi.number().required()
+			}
+		}, {
+			callee: 'dropletReboot',
+			method: 'POST',
+			path: 'floating_ips/:ip/actions',
+			required: 'action',
+			params: {
+				ip: ip
+			},
+			body: extend({
+				type: 'unassign'
+			}, body)
+		}, raw));
 	}
 });
 
