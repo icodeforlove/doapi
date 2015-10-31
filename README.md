@@ -1,3 +1,6 @@
+[![NPM version][npm-image]][npm-url]
+[![Downloads][download-badge]][npm-url]
+
 # doapi
 
 The doapi module allows you to communicate with the [DigitalOcean API V2](https://developers.digitalocean.com/documentation/v2/) from node.js in a promise friendly manner.
@@ -186,3 +189,7 @@ All methods follow the [official API documentation](https://developers.digitaloc
 - [floatingIpDestroy(String ip [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#delete-a-floating-ips)
 - [floatingIpAssign(String droplet_id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#assign-a-floating-ip-to-a-droplet)
 - [floatingIpUnassign(String droplet_id [, Boolean raw])](https://developers.digitalocean.com/documentation/v2/#unassign-a-floating-ip)
+
+[npm-url]: https://npmjs.org/package/doapi
+[npm-image]: https://img.shields.io/npm/v/doapi.svg?style=flat-square
+[download-badge]: http://img.shields.io/npm/dm/doapi.svg?style=flat-square
