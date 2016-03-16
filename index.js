@@ -97,7 +97,7 @@ var DigitalOcean = PromiseObject.create({
 						function(error, response, body) {
 							var ratelimit, requestinfo;
 
-							if (response.headers) {
+							if (response && response.headers) {
 								ratelimit = {
 									limit: response.headers['ratelimit-limit'],
 									remaining: response.headers['ratelimit-remaining'],
