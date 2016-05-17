@@ -95,6 +95,12 @@ var DigitalOcean = PromiseObject.create({
 							body: $config.body
 						},
 						function(error, response, body) {
+							if (error) {
+								return reject(new Error(
+									'Request Failed: ' + error
+								));
+							}
+
 							var ratelimit, requestinfo;
 
 							if (response && response.headers) {
@@ -110,18 +116,14 @@ var DigitalOcean = PromiseObject.create({
 								};
 							}
 
-							if (!error && body && (response.statusCode < 200 || response.statusCode > 299)) {
+							if (body && (response.statusCode < 200 || response.statusCode > 299)) {
 								return reject(new Error(
-									'\nRequest Details: ' + JSON.stringify(requestinfo) + 
+									'\nRequest Details: ' + JSON.stringify(requestinfo) +
 									'\nAPI Error: ' + (body.description || body.message)
-								));
-							} else if (error) {
-								return reject(new Error(
-									'Request Failed: ' + error
 								));
 							} else if ($config.required && !body[$config.required]) {
 								return reject(new Error(
-									'\nRequest Details: ' + JSON.stringify(requestinfo) + 
+									'\nRequest Details: ' + JSON.stringify(requestinfo) +
 									'\nAPI Error: Response was missing required field (' + $config.required + ')'
 								));
 							} else {
