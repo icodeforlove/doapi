@@ -17,7 +17,11 @@ npm install doapi --save
 
 The `--save` tells NPM to automatically add it to your `package.json` file
 
-## Usage
+Also this module is published by [Dyaa Eldin][dyaa] in [Atmosphere][atmosphere] for MeteorJS developers.
+
+    meteor add dyaa:digitalocean
+
+## Usage for NodeJS
 
 ```js
 // Import a module
@@ -32,13 +36,34 @@ api.dropletGetAll().then(function (droplets) {
 });
 ```
 
-## Config
+## Usage for MeteorJS
+```js 
+// Import a module
+var api = new Digitalocean({token:'my_token'});
+
+// Get things done
+api.dropletGetAll().then(function (droplets) {
+    console.log(droplets);
+});
+```
+
+## NodeJS Config
 ```js
 new DigitalOceanAPI({
 	token: 'my_token',
 	itemsPerPage: 100, // default=100
 	maxRetries: 5, // default=5
 	raw: false // default=false
+});
+```
+
+## MeteorJS Config
+```js
+new Digitalocean({
+    token: 'my_token',
+    itemsPerPage: 100, // default=100
+    maxRetries: 5, // default=5
+    raw: false // default=false
 });
 ```
 
@@ -193,3 +218,5 @@ All methods follow the [official API documentation](https://developers.digitaloc
 [npm-url]: https://npmjs.org/package/doapi
 [npm-image]: https://img.shields.io/npm/v/doapi.svg?style=flat-square
 [download-badge]: http://img.shields.io/npm/dm/doapi.svg?style=flat-square
+[dyaa]: https://github.com/dyaa/meteor-digitalocean
+[atmosphere]: https://atmospherejs.com/dyaa/digitalocean
