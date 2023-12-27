@@ -224,13 +224,13 @@ var DigitalOcean = PromiseObject.create({
 	/**
 	 * List all available Kernels for a Droplet
 	 */
-	dropletKernalsGetAll: function($deferred, id, query, raw) {
+	dropletKernelsGetAll: function($deferred, id, query, raw) {
 		$deferred.resolve(this._request({
 			params: {
 				droplet_id: Joi.number().required()
 			}
 		}, {
-			callee: 'dropletKernalsGetAll',
+			callee: 'dropletKernelsGetAll',
 			method: 'GET',
 			path: 'droplets/:droplet_id/kernels',
 			required: 'kernels',
